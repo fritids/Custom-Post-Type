@@ -1,7 +1,7 @@
 <?php
 /* Custom Post Type - Degrees
 ********************************************************************************************************************************/
-include_once('functions/fn-degrees.php');
+include_once('functions/fn-custom-post-type-degrees.php');
 
 
 // IF YOU DON'T WANT AN ENTIRE CUSTOM POST TYPE, JUST NEED SOME CUSTOM META BOXES ADDED TO YOUR PAGE or POST,
