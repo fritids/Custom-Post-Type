@@ -1,20 +1,20 @@
-<?php 
+<?php
 /*
 Plugin Name: JG Degrees
-Plugin URI: 
+Plugin URI:
 Description: Post Type for Degrees
 Version: 1.0
-Author: Jen Germann 
+Author: Jen Germann
 Author URI: http://jengermann.com
 */
 
 // Enable post thumbnails
 // include "includes/functions.php";
 class jg_degrees {
-	
-	var $meta_fields = array("logo_image","acc_agency","address","state","phone","website","tuition_fees","percent_fin_aid", "school_type", "programs_offered", "most_popular");
-	
-	
+
+	var $meta_fields = array("logo_link","affiliate_link","acc_agency","address","state","phone","website","tuition_fees","percent_fin_aid", "school_type", "programs_offered", "most_popular");
+
+
 	function jg_degrees()
 	{
 		// Register custom post types
@@ -32,22 +32,22 @@ class jg_degrees {
 			'supports' => array('title', 'editor', 'excerpt', 'thumbnail'/*, 'comments' ,'custom-fields'*/),
 			'taxonomies' => array('category', 'post_tag')
 		));
-		
+
 		add_filter("manage_edit-jg_degrees_columns", array(&$this, "edit_columns"));
 		add_action("manage_posts_custom_column", array(&$this, "custom_columns"));
-		
+
 		// Register custom taxonomy
 		register_taxonomy( 'degree_types', 'jg_degrees', array( 'hierarchical' => true, 'label' => __('Degree Category') ) );  // category
 		register_taxonomy( 'degree_tag', 'jg_degrees', array('hierarchical' => false,  'label' => __('Degree Tag'))); //tag
-	
+
 		// Admin interface init
 		add_action("admin_init", array(&$this, "admin_init"));
 		add_action("template_redirect", array(&$this, 'template_redirect'));
-		
+
 		// Insert post hook
 		add_action("wp_insert_post", array(&$this, "wp_insert_post"), 10, 2);
 	}
-	
+
 	function edit_columns($columns)
 	{
 		$columns = array(
@@ -57,10 +57,10 @@ class jg_degrees {
 			"most_popular" => "Most Popular?",
 			"state" => "State",
 		);
-		
+
 		return $columns;
 	}
-	
+
 	function custom_columns($column)
 	{
 		global $post;
@@ -69,7 +69,7 @@ class jg_degrees {
 		switch ($column)
 		{
 			case "degree_types":
-				$degree_types = get_the_term_list($post->ID, 'degree_types', '', ', ','');  
+				$degree_types = get_the_term_list($post->ID, 'degree_types', '', ', ','');
 				echo $degree_types;
 				break;
 			case "most_popular":
@@ -82,7 +82,7 @@ class jg_degrees {
 				break;
 		}
 	}
-	
+
 	// Template selection
 	function template_redirect()
 	{
@@ -93,7 +93,7 @@ class jg_degrees {
 			die();
 		}
 	}
-	
+
 	// When a post is inserted or updated
 	function wp_insert_post($post_id, $post = null)
 	{
@@ -103,7 +103,7 @@ class jg_degrees {
 			foreach ($this->meta_fields as $key)
 			{
 				$value = @$_POST[$key];
-				
+
 				// If value is a string it should be unique
 				if (!is_array($value))
 				{
@@ -121,7 +121,7 @@ class jg_degrees {
 				{
 					// If passed along is an array, we should remove all previous data
 					delete_post_meta($post_id, $key);
-					
+
 					// Loop through the array adding new values to the post meta as different entries with the same name
 					foreach ($value as $entry)
 					{
@@ -132,19 +132,22 @@ class jg_degrees {
 			}
 		}
 	}
-	
-	function admin_init() 
+
+	function admin_init()
 	{
 		// Custom meta boxes for the edit jg_degrees screen
 	add_meta_box("degree-meta", "Degree Options", array(&$this, "meta_options"), "jg_degrees", "normal", "low");
 	}
-	
+
 	// Admin post meta contents
 	function meta_options()
 	{ //"acc_agency","address","city","state","zip"
 		global $post;
 		$custom = get_post_custom($post->ID);
 		$most_popular = $custom["most_popular"][0];
+
+		$logo_link = $custom["logo_link"][0];
+		$affiliate_link = $custom["affiliate_link"][0];
 
 		$acc_agency = $custom["acc_agency"][0];
 		$address = $custom["address"][0];
@@ -166,10 +169,10 @@ class jg_degrees {
 	</script>
 
 <?php if ( attribute_escape($most_popular) === "true" ){
-				$checked = "checked=\"checked\""; 
+				$checked = "checked=\"checked\"";
 			} else {
 				$checked = "";
-			} 
+			}
 ?>
 <table>
 <tr>
@@ -178,7 +181,14 @@ class jg_degrees {
 		<input name="most_popular" id="most_popular" type="checkbox" class="checkbox" value="true" <?php echo $checked; ?> />
 	</td>
 </tr>
-
+<tr>
+	<td><label><strong>Logo Link</strong>: <small>(include the http://)</small></label></td>
+	<td colspan="2"><input type="text" name="logo_link" value="<?php echo $logo_link; ?>" size="50" /></td>
+</tr>
+<tr>
+	<td><label><strong>Affiliate Link</strong>: <small>(include the http://)</small></label></td>
+	<td colspan="2"><input type="text" name="affiliate_link" value="<?php echo $affiliate_link; ?>" size="50" /></td>
+</tr>
 <tr>
 	<td><label><strong>Accrediting Agency</strong>:</label></td>
 	<td colspan="2"><input type="text" name="acc_agency" value="<?php echo $acc_agency; ?>" size="50" /></td>
